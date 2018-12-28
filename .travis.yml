@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t bivogelbusch/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run bivogelbusch/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t bivogelbusch/complex-client ./client
+  - docker build -t bivogelbusch/complex-nginx ./nginx
+  - docker build -t bivogelbusch/complex-server ./server
+  - docker build -t bivogelbusch/complex-worker ./worker
+  # Login securely to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push images to hub
+  - docker push bivogelbusch/complex-client
+  - docker push bivogelbusch/complex-nginx
+  - docker push bivogelbusch/complex-server
+  - docker push bivogelbusch/complex-worker
